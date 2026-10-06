@@ -24,7 +24,6 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit = {},
     onRegisterClick: (studentId: String, surname: String, firstName: String, middleName: String, password: String) -> Unit = { _, _, _, _, _ -> }
 ) {
-    // Force Light Mode theme settings across the entire composable hierarchy
     MaterialTheme(
         colorScheme = lightColorScheme(
             background = Color.White,
@@ -40,12 +39,12 @@ fun RegisterScreen(
         var middleName by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
         var confirmPassword by remember { mutableStateOf("") }
+        var validationError by remember { mutableStateOf("") }
 
         val scrollState = rememberScrollState()
 
         Box(modifier = Modifier.fillMaxSize()) {
 
-            // 1. Full-screen Background Image
             Image(
                 painter = painterResource(id = R.drawable.udm_bg),
                 contentDescription = "Background Image",
@@ -53,14 +52,12 @@ fun RegisterScreen(
                 contentScale = ContentScale.Crop
             )
 
-            // 2. Translucent Dark Overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.45f))
             )
 
-            // 3. Scrollable Center Container (Logo + Card)
             Column(
                 modifier = Modifier
                     .fillMaxWidth(0.88f)
@@ -69,7 +66,6 @@ fun RegisterScreen(
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Merlions Pin Logo above Card
                 Image(
                     painter = painterResource(id = R.drawable.icon),
                     contentDescription = "Merlions Logo",
@@ -79,13 +75,10 @@ fun RegisterScreen(
                     contentScale = ContentScale.Fit
                 )
 
-                // Main Registration Form Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFECECEC) // Light gray card surface
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFECECEC)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Column(
@@ -94,7 +87,6 @@ fun RegisterScreen(
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Title
                         Text(
                             text = "Create Account",
                             fontSize = 24.sp,
@@ -102,9 +94,17 @@ fun RegisterScreen(
                             color = Color.Black
                         )
 
-                        Spacer(modifier = Modifier.height(18.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                        // Unified Input Colors for Light Mode
+                        if (validationError.isNotEmpty()) {
+                            Text(
+                                text = validationError,
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+
                         val textFieldColors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = Color(0xFFF8F9FA),
                             unfocusedContainerColor = Color(0xFFF8F9FA),
@@ -117,10 +117,10 @@ fun RegisterScreen(
                             unfocusedLabelColor = Color.Gray
                         )
 
-                        // 1. Student ID No. Field
+                        // Input fields
                         OutlinedTextField(
                             value = studentId,
-                            onValueChange = { studentId = it },
+                            onValueChange = { studentId = it; validationError = "" },
                             label = { Text("Student ID No.") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -130,10 +130,9 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // 2. Surname Field
                         OutlinedTextField(
                             value = surname,
-                            onValueChange = { surname = it },
+                            onValueChange = { surname = it; validationError = "" },
                             label = { Text("Surname") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -143,10 +142,9 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // 3. First Name (Given) Field
                         OutlinedTextField(
                             value = firstName,
-                            onValueChange = { firstName = it },
+                            onValueChange = { firstName = it; validationError = "" },
                             label = { Text("First Name (Given)") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -156,10 +154,9 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // 4. Middle Name Field
                         OutlinedTextField(
                             value = middleName,
-                            onValueChange = { middleName = it },
+                            onValueChange = { middleName = it; validationError = "" },
                             label = { Text("Middle Name") },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -169,10 +166,9 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // 5. Password Field
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { password = it },
+                            onValueChange = { password = it; validationError = "" },
                             label = { Text("Password") },
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
@@ -183,10 +179,9 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // 6. Confirm Password Field
                         OutlinedTextField(
                             value = confirmPassword,
-                            onValueChange = { confirmPassword = it },
+                            onValueChange = { confirmPassword = it; validationError = "" },
                             label = { Text("Confirm Password") },
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
@@ -197,24 +192,31 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Pill-shaped Blue Button
                         Button(
                             onClick = {
-                                onRegisterClick(
-                                    studentId,
-                                    surname,
-                                    firstName,
-                                    middleName,
-                                    password
-                                )
+                                when {
+                                    studentId.isBlank() || surname.isBlank() || firstName.isBlank() || password.isBlank() -> {
+                                        validationError = "Please fill in all required fields"
+                                    }
+                                    password != confirmPassword -> {
+                                        validationError = "Passwords do not match"
+                                    }
+                                    else -> {
+                                        onRegisterClick(
+                                            studentId.trim(),
+                                            surname.trim(),
+                                            firstName.trim(),
+                                            middleName.trim(),
+                                            password
+                                        )
+                                    }
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
                             shape = CircleShape,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF0052CC)
-                            )
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0052CC))
                         ) {
                             Text(
                                 text = "Register",
@@ -226,7 +228,6 @@ fun RegisterScreen(
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Bottom Sign In Link
                         TextButton(onClick = onNavigateToLogin) {
                             Text(
                                 text = "Already have account? Sign in",

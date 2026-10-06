@@ -20,9 +20,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit = {},
-    onLoginClick: (String, String) -> Unit = { _, _ -> }
+    onLoginClick: (studentId: String, password: String) -> Unit = { _, _ -> }
 ) {
-    // Forces Light Mode color scheme for this entire composable hierarchy
     MaterialTheme(
         colorScheme = lightColorScheme(
             background = Color.White,
@@ -33,6 +32,7 @@ fun LoginScreen(
     ) {
         var studentEmployeeNo by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
+        var errorMessage by remember { mutableStateOf("") }
 
         Box(modifier = Modifier.fillMaxSize()) {
 
@@ -51,14 +51,13 @@ fun LoginScreen(
                     .background(Color.Black.copy(alpha = 0.45f))
             )
 
-            // 3. Center Container (Logo + Card)
+            // 3. Center Container
             Column(
                 modifier = Modifier
                     .fillMaxWidth(0.88f)
                     .align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Merlions Pin Logo above the Card
                 Image(
                     painter = painterResource(id = R.drawable.icon),
                     contentDescription = "Merlions Logo",
@@ -68,13 +67,10 @@ fun LoginScreen(
                     contentScale = ContentScale.Fit
                 )
 
-                // Main Form Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFECECEC)
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFECECEC)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Column(
@@ -83,7 +79,6 @@ fun LoginScreen(
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Title
                         Text(
                             text = "Welcome Back",
                             fontSize = 24.sp,
@@ -91,12 +86,24 @@ fun LoginScreen(
                             color = Color.Black
                         )
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        // Student/Employee No Field
+                        if (errorMessage.isNotEmpty()) {
+                            Text(
+                                text = errorMessage,
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+
+                        // Student / Employee No. Input Field
                         OutlinedTextField(
                             value = studentEmployeeNo,
-                            onValueChange = { studentEmployeeNo = it },
+                            onValueChange = {
+                                studentEmployeeNo = it
+                                errorMessage = ""
+                            },
                             placeholder = { Text("Student/Employee No.", color = Color.Gray) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
@@ -117,7 +124,10 @@ fun LoginScreen(
                         // Password Field
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { password = it },
+                            onValueChange = {
+                                password = it
+                                errorMessage = ""
+                            },
                             placeholder = { Text("Password", color = Color.Gray) },
                             singleLine = true,
                             visualTransformation = PasswordVisualTransformation(),
@@ -136,16 +146,20 @@ fun LoginScreen(
 
                         Spacer(modifier = Modifier.height(22.dp))
 
-                        // Pill-shaped Blue Button
+                        // Trigger Login Action Flow
                         Button(
-                            onClick = { onLoginClick(studentEmployeeNo, password) },
+                            onClick = {
+                                if (studentEmployeeNo.isBlank() || password.isBlank()) {
+                                    errorMessage = "Please enter both Student ID and Password"
+                                } else {
+                                    onLoginClick(studentEmployeeNo.trim(), password)
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
                             shape = CircleShape,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF0052CC)
-                            )
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0052CC))
                         ) {
                             Text(
                                 text = "Log In",
@@ -157,10 +171,7 @@ fun LoginScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Register Link
-                        TextButton(
-                            onClick = onNavigateToRegister
-                        ) {
+                        TextButton(onClick = onNavigateToRegister) {
                             Text(
                                 text = "Don't have an account? Register",
                                 fontSize = 14.sp,
