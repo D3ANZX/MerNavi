@@ -23,8 +23,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         //Schedule table
         const val TABLE_SCHEDULES = "schedules_tbl"
         const val COLUMN_SCHEDULE_ID = "schedule_id"
+        const val FK_COLUMN_USER_ID = "student_id"
         const val FK_COLUMN_COURSE_ID = "course_id"
-        const val COLUMN_ROOM = "room_id"
+
+        const val FK_COLUMN_ROOM_ID = "room_id"
         const val COLUMN_START_TIME = "start_time"
         const val COLUMN_END_TIME = "end_time"
         const val COLUMN_DAY = "day"
@@ -32,13 +34,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         //Room Table
         const val TABLE_ROOMS = "rooms_tbl"
         const val COLUMN_ROOM_ID = "room_id"
+        const val COLUMN_ROOM_NO = "room_no"
         const val COLUMN_BUILDING = "building_name"
 
         //Course Table
         const val TABLE_COURSES = "courses_tbl"
-        const val FK_COLUMN_USER_ID = "user_id"
         const val COLUMN_COURSE_ID = "course_id"
         const val COLUMN_CLASS_CODE = "class_code"
+        const val COLUMN_CLASS_CLASSIFICATION = "class_classification"
         const val COLUMN_COURSE_TITLE = "course_title"
         const val COLUMN_PROFESSOR_NAME = "professor_name"
 
@@ -61,26 +64,28 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val createCoursesTable = """
             CREATE TABLE $TABLE_COURSES(
                 $COLUMN_COURSE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                $FK_COLUMN_USER_ID INTEGER NOT NULL,
                 $COLUMN_CLASS_CODE TEXT UNIQUE NOT NULL,
                 $COLUMN_COURSE_TITLE TEXT UNIQUE NOT NULL,
-                $COLUMN_PROFESSOR_NAME TEXT NOT NULL,
-                FOREIGN KEY($FK_COLUMN_USER_ID) REFERENCES $TABLE_USERS($COLUMN_USER_ID) ON DELETE CASCADE
+                $COLUMN_CLASS_CLASSIFICATION TEXT NOT NULL,
+                $COLUMN_PROFESSOR_NAME TEXT NOT NULL
             )
         """.trimIndent()
 
         val createRoomsTable = """
             CREATE TABLE $TABLE_ROOMS(
-                $COLUMN_ROOM_ID TEXT UNIQUE NOT NULL,
+                $COLUMN_ROOM_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $COLUMN_ROOM_NO TEXT UNIQUE NOT NULL,
                 $COLUMN_BUILDING TEXT NOT NULL
+                
             )
         """.trimIndent()
 
         val createSchedulesTable = """
             CREATE TABLE $TABLE_SCHEDULES(
                 $COLUMN_SCHEDULE_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $FK_COLUMN_USER_ID INTEGER NOT NULL,
                 $FK_COLUMN_COURSE_ID INTEGER NOT NULL,
-                $COLUMN_ROOM TEXT NOT NULL,
+                $FK_COLUMN_ROOM_ID INT NOT NULL,
                 $COLUMN_START_TIME TEXT NOT NULL,
                 $COLUMN_END_TIME TEXT NOT NULL,
                 $COLUMN_DAY TEXT NOT NULL,
